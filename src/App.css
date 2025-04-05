@@ -17,11 +17,12 @@
 
 /* Input Styles */
 .input-container {
-  position: relative;
-  width: 100%;
-  max-width: 270px;
-  margin: 2rem 0;
+  display: flex;
+  justify-content: center;
+  width: 45%;
+  margin: 2rem auto;
 }
+
 
 .input {
   width: 100%;
@@ -92,4 +93,46 @@
   bottom: 0;
   width: 0px;
   transition: width .5s linear;
+}
+
+.centered-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-top: 6rem; /* Adjust the margin as needed */
+}
+
+.button-container {
+  display: flex;
+  justify-content: center; /* Center the buttons horizontally */
+  gap: 20px; /* Add space between the buttons */
+  width: 100%;
+  max-width: 640px;
+  margin: 1rem 0;
+}
+
+.skip-button, .reset-button {
+  width: 45%; /* Adjust the width as needed */
+  height: 70px; /* Adjust the height as needed */
+  padding: 12px;
+  font-size: 18px;
+  font-family: 'Press Start 2P', sans-serif;
+  color: #000; /* Dark text */
+  background-color: #fff; /* White background */
+  border: 2px solid #000; /* Dark border */
+  outline: none;
+  transition: all 0.3s ease;
+  box-shadow: 4px 4px 0 #000; /* Dark shadow */
+}
+
+.skip-button:hover, .reset-button:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0 #000; /* Dark shadow */
+}
+
+.skip-button:focus, .reset-button:focus {
+  background-color: #f0f0f0; /* Light grey background on focus */
+  color: #000; /* Dark text */
+  border-color: #000; /* Dark border */
 }
