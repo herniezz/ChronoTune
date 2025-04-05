@@ -1,0 +1,24 @@
+/* index.css */
+:root {
+    --ultra-violet: #4F4789;
+    --dark-purple: #201335;
+    --thistle: #DDCAD9;
+    --azure-web: #fff;
+    --anti-flash: #E5E9EC;
+    --super-dark: #0A0A0A;
+}
+
+body {
+    background: var(--super-dark);
+    background-image: url("/Users/herni/WebstormProjects/ChronoTune/public/XZ5V.gif");
+    background-size: cover;
+    margin: 0;
+    padding: 2rem;
+    font-family: 'Press Start 2P', sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+}
+
+/* Global resets or other utility classes */
