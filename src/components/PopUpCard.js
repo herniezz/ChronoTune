@@ -24,8 +24,10 @@ const PopUpCard = ({ message, onClose, onNextRound }) => {
                     <button className="close-button" onClick={onClose}>X</button>
                 </div>
                 <div className="content">
-                    {message}
-                    <button className="next-round-button" onClick={onNextRound}>Next Round</button>
+                    <div className="message-text">{message}</div>
+                    <div className="button-container">
+                        <button className="next-round-button" onClick={onNextRound}>Next Round</button>
+                    </div>
                 </div>
             </div>
         </StyledWrapper>
@@ -90,17 +92,39 @@ const StyledWrapper = styled.div`
         font-size: 14px;
         font-weight: 600;
         color: #000000;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        height: calc(100% - 32px);
+    }
+
+    .message-text {
+        margin-top: 20px;
+        line-height: 1.6;
+    }
+
+    .button-container {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 30px;
     }
 
     .next-round-button {
-        margin-top: 20px;
-        padding: 10px 20px;
+        padding: 15px 30px;
         font-size: 14px;
         cursor: pointer;
         background-color: #000000;
         color: #ffffff;
         border: none;
         font-family: 'Press Start 2P', sans-serif;
+        width: 80%;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+
+    .next-round-button:hover {
+        transform: translate(-2px, -2px);
+        box-shadow: 4px 4px 0 #000000;
     }
 `;
 
