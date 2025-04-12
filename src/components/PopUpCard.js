@@ -47,12 +47,12 @@ const StyledWrapper = styled.div`
 
     .card {
         font-family: 'Press Start 2P', sans-serif;
-        width: 400px;
-        height: 400px;
-        translate: -6px -6px;
-        background: #ffffff;
-        border: 3px solid #000000;
-        box-shadow: 12px 12px 0 #000000;
+        width: 320px;
+        height: 280px;
+        translate: -4px -4px;
+        background: var(--azure-web);
+        border: 3px solid var(--super-dark);
+        box-shadow: 8px 8px 0 var(--super-dark);
         overflow: hidden;
         transition: all 0.3s ease-in-out;
         position: fixed;
@@ -60,7 +60,8 @@ const StyledWrapper = styled.div`
         left: 50%;
         transform: translate(-50%, -50%);
         z-index: 1000;
-        color: #000000;
+        color: var(--super-dark);
+        border-radius: 4px;
     }
 
     .head {
@@ -69,10 +70,10 @@ const StyledWrapper = styled.div`
         font-weight: 900;
         width: 100%;
         height: 32px;
-        background: #ffffff;
+        background: var(--azure-web);
         padding: 5px 12px;
-        color: #000000;
-        border-bottom: 3px solid #000000;
+        color: var(--super-dark);
+        border-bottom: 3px solid var(--super-dark);
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -81,17 +82,18 @@ const StyledWrapper = styled.div`
     .close-button {
         background: none;
         border: none;
-        font-size: 36px;
+        font-size: 32px;
         cursor: pointer;
-        color: #000000;
+        color: var(--super-dark);
         font-family: 'Press Start 2P', sans-serif;
+        padding: 30px;
     }
 
     .content {
-        padding: 8px 12px;
-        font-size: 14px;
+        padding: 12px 16px;
+        font-size: 12px;
         font-weight: 600;
-        color: #000000;
+        color: var(--super-dark);
         display: flex;
         flex-direction: column;
         justify-content: space-between;
@@ -99,32 +101,35 @@ const StyledWrapper = styled.div`
     }
 
     .message-text {
-        margin-top: 20px;
-        line-height: 1.6;
+        margin-top: 16px;
+        line-height: 1.5;
+
     }
 
     .button-container {
         display: flex;
         justify-content: center;
-        margin-bottom: 30px;
+        margin-bottom: 60px;
     }
 
     .next-round-button {
-        padding: 15px 30px;
-        font-size: 14px;
+        padding: 10px 20px;
+        font-size: 12px;
         cursor: pointer;
-        background-color: #000000;
-        color: #ffffff;
+        background-color: var(--super-dark);
+        color: var(--azure-web);
         border: none;
         font-family: 'Press Start 2P', sans-serif;
-        width: 80%;
+        width: 75%;
         text-align: center;
         transition: all 0.3s ease;
+        border-radius: 2px;
     }
 
     .next-round-button:hover {
         transform: translate(-2px, -2px);
-        box-shadow: 4px 4px 0 #000000;
+        box-shadow: 4px 4px 0 var(--super-dark);
+        background-color: var(--super-dark);
     }
 `;
 
