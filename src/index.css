@@ -10,7 +10,7 @@
 
 body {
     background: var(--super-dark);
-    background-image: url("/Users/herni/WebstormProjects/ChronoTune/public/XZ5V.gif");
+    background-image: url("https://raw.githubusercontent.com/herniezz/ChronoTune/refs/heads/main/public/XZ5V.gif");
     background-size: cover;
     margin: 0;
     padding: 2rem;
