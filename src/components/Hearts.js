@@ -37,11 +37,11 @@ const HeartWrapper = styled.div`
     }
 
     .wave-bg {
-        fill: rgba(73, 115, 255, 0.3); /* semi-transparent background */
+        fill: rgba(255, 255, 255, 0.3); /* semi-transparent white */
     }
 
     .wave {
-        fill: #4973ff;
+        fill: #ffffff;
         transition: transform 0.5s, fill 0.5s;
     }
 `;
