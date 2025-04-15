@@ -1,6 +1,6 @@
 // src/components/GameScreen.js
-
 import React, { useState, useEffect, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import VideoPlayer from './VideoPlayer';
 import GameForm from './GameForm';
 import PopUpCard from './PopUpCard';
@@ -9,6 +9,9 @@ import { CONFIG } from '../config';
 import '../App.css';
 
 function GameScreen() {
+    const location = useLocation();
+    const queryParams = new URLSearchParams(location.search);
+    const category = queryParams.get('category') || 'polish';
     const [videoList, setVideoList] = useState([]);
     const [currentVideo, setCurrentVideo] = useState(null);
     const [guesses, setGuesses] = useState([]);
@@ -19,14 +22,31 @@ function GameScreen() {
     const videoRef = useRef(null);
 
     useEffect(() => {
-        fetch('./playlist/top_teledyski.json')
+        let playlistFile;
+        switch(category) {
+            case 'polish':
+                playlistFile = 'top_teledyski';
+                break;
+            case 'president':
+                playlistFile = 'elections';
+                break;
+            case 'dadrock':
+            case 'sassy':
+            case 'hiphop':
+                playlistFile = category;
+                break;
+            default:
+                playlistFile = 'top_teledyski';
+        }
+
+        fetch(`./playlist/${playlistFile}.json`)
             .then((res) => res.json())
             .then((data) => {
                 setVideoList(data);
                 loadNewVideo(data);
             })
             .catch((err) => console.error(err));
-    }, []);
+    }, [category]);
 
     useEffect(() => {
         if (timeLeft <= 0) {
@@ -46,6 +66,7 @@ function GameScreen() {
         setCurrentVideo(video);
         setTimeLeft(CONFIG.timerDuration);
     };
+
 
     const handleSubmit = (guess) => {
         if (!currentVideo || hearts <= 0) return;
@@ -75,7 +96,7 @@ function GameScreen() {
         if (hearts <= 0) return;
         setGuesses(prev => [...prev, { guess: 'Skipped', points: -1 }]);
         setHearts(prev => Math.max(prev - 1, 0));
-        setMessage("pominiety utwor, tracisz 1 punkt");
+        setMessage("Omg!");
         setIsPopupVisible(true);
     };
 
@@ -118,7 +139,6 @@ function GameScreen() {
 
     return (
         <>
-            <h1 className="title">Guess the Release Year</h1>
 
             {/* input form */}
             <div className="input-container">

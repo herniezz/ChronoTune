@@ -12,7 +12,7 @@ function HomeScreen() {
                 years of iconic music videos.
             </p>
             <div className="button-group">
-                <Link to="/game" className="home-button">
+                <Link to="/music-choose" className="home-button">
                     Start game
                 </Link>
                 <Link to="/highscores" className="home-button">
