@@ -19,7 +19,7 @@ function GameScreen() {
     const videoRef = useRef(null);
 
     useEffect(() => {
-        fetch('/playlist/top_teledyski.json')
+        fetch('./playlist/top_teledyski.json')
             .then((res) => res.json())
             .then((data) => {
                 setVideoList(data);
