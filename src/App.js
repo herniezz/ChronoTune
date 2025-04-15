@@ -7,7 +7,7 @@ import './App.css';
 
 function App() {
     return (
-        <BrowserRouter>
+        <BrowserRouter basename="/ChronoTune">
             <Routes>
                 <Route path="/" element={<HomeScreen />} />
                 <Route path="/game" element={<GameScreen />} />
