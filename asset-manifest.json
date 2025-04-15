@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/ChronoTune/static/css/main.a8a6bd83.css",
+    "main.js": "/ChronoTune/static/js/main.22f4c68a.js",
+    "index.html": "/ChronoTune/index.html",
+    "main.a8a6bd83.css.map": "/ChronoTune/static/css/main.a8a6bd83.css.map",
+    "main.22f4c68a.js.map": "/ChronoTune/static/js/main.22f4c68a.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.a8a6bd83.css",
+    "static/js/main.22f4c68a.js"
+  ]
+}
