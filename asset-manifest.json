@@ -1,13 +1,14 @@
 {
   "files": {
-    "main.css": "/ChronoTune/static/css/main.a8a6bd83.css",
-    "main.js": "/ChronoTune/static/js/main.10938db3.js",
+    "main.css": "/ChronoTune/static/css/main.d34dc0b2.css",
+    "main.js": "/ChronoTune/static/js/main.ab5b490a.js",
+    "static/media/theme2.gif": "/ChronoTune/static/media/theme2.54cd35a4399fd0ab983e.gif",
     "index.html": "/ChronoTune/index.html",
-    "main.a8a6bd83.css.map": "/ChronoTune/static/css/main.a8a6bd83.css.map",
-    "main.10938db3.js.map": "/ChronoTune/static/js/main.10938db3.js.map"
+    "main.d34dc0b2.css.map": "/ChronoTune/static/css/main.d34dc0b2.css.map",
+    "main.ab5b490a.js.map": "/ChronoTune/static/js/main.ab5b490a.js.map"
   },
   "entrypoints": [
-    "static/css/main.a8a6bd83.css",
-    "static/js/main.10938db3.js"
+    "static/css/main.d34dc0b2.css",
+    "static/js/main.ab5b490a.js"
   ]
 }
