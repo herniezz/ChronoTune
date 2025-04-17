@@ -1,7 +1,7 @@
 // src/components/GameScreen.js
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
-import VideoPlayer from './VideoPlayer';
+import YouTube from 'react-youtube';
 import GameForm from './GameForm';
 import PopUpCard from './PopUpCard';
 import Hearts from './Hearts';
@@ -19,7 +19,8 @@ function GameScreen() {
     const [hearts, setHearts] = useState(5);
     const [message, setMessage] = useState('');
     const [isPopupVisible, setIsPopupVisible] = useState(false);
-    const videoRef = useRef(null);
+    const [isPaused, setIsPaused] = useState(false);
+    const playerRef = useRef(null);
 
     useEffect(() => {
         let playlistFile;
@@ -50,41 +51,64 @@ function GameScreen() {
 
     useEffect(() => {
         if (timeLeft <= 0) {
-            setMessage("bardzo sie starales ale z gry wyleciales");
+            setMessage("Time up! You lose a heart.");
             setIsPopupVisible(true);
             return;
         }
-        const interval = setInterval(() => {
-            setTimeLeft(prev => prev - 1);
-        }, 1000);
-        return () => clearInterval(interval);
-    }, [timeLeft]);
+
+        // Only decrement timer if video is not paused
+        if (!isPaused) {
+            const interval = setInterval(() => {
+                setTimeLeft(prev => prev - 1);
+            }, 1000);
+            return () => clearInterval(interval);
+        }
+    }, [timeLeft, isPaused]);
+
+    // YouTube player event handlers
+    const onPlayerReady = (event) => {
+        playerRef.current = event.target;
+    };
+
+    const onPlayerStateChange = (event) => {
+        // YouTube states: -1 (unstarted), 0 (ended), 1 (playing), 2 (paused), 3 (buffering), 5 (cued)
+        setIsPaused(event.data === 2); // 2 means paused
+    };
+
+    const youtubeOpts = {
+        height: '390',
+        width: '640',
+        playerVars: {
+            autoplay: 1,
+            controls: 1,
+            modestbranding: 1,
+        },
+    };
 
     const loadNewVideo = (list) => {
         if (!list || list.length === 0) return;
         const video = list[Math.floor(Math.random() * list.length)];
         setCurrentVideo(video);
         setTimeLeft(CONFIG.timerDuration);
+        setIsPaused(false);
     };
-
 
     const handleSubmit = (guess) => {
         if (!currentVideo || hearts <= 0) return;
         const guessedYear = parseInt(guess, 10);
-
 
         const actualYear = currentVideo.year;
         let points = 0;
 
         if (guessedYear === actualYear) {
             points = 1;
-            setMessage("JAPIDI . gratulacje");
-        } else if (Math.abs(guessedYear - actualYear) <= 5) {
+            setMessage("Nice, you did it!");
+        } else if (Math.abs(guessedYear - actualYear) <= 2) {
             points = 0.5;
-            setMessage(`masz tu 0.5 zeby ci smutno nie bylo. rok to ${actualYear}.`);
+            setMessage(`Alright, close guess. Year is ${actualYear}, but you get half a point.`);
             setHearts(prev => Math.max(prev - 0.5, 0));
         } else {
-            setMessage(`SKIBIDI ALE DEBIL XD rok to ${actualYear}.`);
+            setMessage(`uh oh, not right. The answer is ${actualYear}.`);
             setHearts(prev => Math.max(prev - 1, 0));
         }
 
@@ -104,9 +128,9 @@ function GameScreen() {
         setGuesses([]);
         setHearts(5);
         setMessage('');
-        setTimeLeft(CONFIG.timerDuration); // Reset timer
-        setIsPopupVisible(false); // Close any popup
-        loadNewVideo(videoList); // Load a new video
+        setTimeLeft(CONFIG.timerDuration);
+        setIsPopupVisible(false);
+        loadNewVideo(videoList);
     };
 
     const handleClosePopup = () => {
@@ -139,7 +163,6 @@ function GameScreen() {
 
     return (
         <>
-
             {/* input form */}
             <div className="input-container">
                 <GameForm onSubmit={handleSubmit} />
@@ -148,9 +171,16 @@ function GameScreen() {
                 {/* Left-side Skip button */}
                 <button className="skip-button" onClick={handleSkip}>Skip</button>
 
-                {/* video container */}
+                {/* YouTube player */}
                 <div id="player">
-                    <VideoPlayer video={currentVideo} ref={videoRef} />
+                    {currentVideo && (
+                        <YouTube
+                            videoId={currentVideo.youtube_id}
+                            opts={youtubeOpts}
+                            onReady={onPlayerReady}
+                            onStateChange={onPlayerStateChange}
+                        />
+                    )}
                 </div>
 
                 {/* right-side Reset button */}
