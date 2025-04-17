@@ -1,33 +1,48 @@
 // src/components/VideoPlayer.js
-import React, { forwardRef, useImperativeHandle } from 'react';
+import React, {
+    forwardRef,
+    useImperativeHandle,
+    useRef,
+    useState,
+} from 'react';
 import YouTube from 'react-youtube';
 
-const VideoPlayer = forwardRef(({ video, onStateChange }, ref) => {
-    if (!video) return null;
+const VideoPlayer = forwardRef(({ video, onStateChange, onError }, ref) => {
+    const playerRef = useRef(null);
+    const [startTime, setStartTime] = useState(40);
+
+    useImperativeHandle(ref, () => ({
+        pauseVideo: () => {
+            playerRef.current?.pauseVideo();
+        },
+        playVideo: () => {
+            playerRef.current?.playVideo();
+        },
+        getCurrentTime: () => {
+            return playerRef.current ? playerRef.current.getCurrentTime() : 0;
+        },
+        getDuration: () => {
+            return playerRef.current ? playerRef.current.getDuration() : 0;
+        },
+    }));
 
     const youtubeOpts = {
-        height: '360',
+        height: '380',
         width: '640',
         playerVars: {
             autoplay: 1,
-            start: 40,
+            controls: 0,
             modestbranding: 1,
-            controls: 1,
+            start: startTime,
+            showinfo: 0,
         },
     };
 
     const handleReady = (event) => {
-        // Expose player methods through ref
-        useImperativeHandle(ref, () => ({
-            pauseVideo: () => event.target.pauseVideo(),
-            playVideo: () => event.target.playVideo(),
-            getCurrentTime: () => event.target.getCurrentTime(),
-            getDuration: () => event.target.getDuration(),
-        }));
+        playerRef.current = event.target;
     };
 
     const handleStateChange = (event) => {
-        // YouTube states: -1 (unstarted), 0 (ended), 1 (playing), 2 (paused), 3 (buffering), 5 (cued)
         if (onStateChange) {
             const isPaused = event.data === 2;
             onStateChange(isPaused);
@@ -36,10 +51,11 @@ const VideoPlayer = forwardRef(({ video, onStateChange }, ref) => {
 
     return (
         <YouTube
-            videoId={video.youtube_id}
+            videoId={video?.id}
             opts={youtubeOpts}
             onReady={handleReady}
             onStateChange={handleStateChange}
+            onError={onError}
         />
     );
 });

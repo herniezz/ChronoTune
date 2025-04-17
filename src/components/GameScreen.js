@@ -1,14 +1,23 @@
 // src/components/GameScreen.js
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
-import YouTube from 'react-youtube';
+import VideoPlayer from './VideoPlayer';
 import GameForm from './GameForm';
 import PopUpCard from './PopUpCard';
 import Hearts from './Hearts';
 import { CONFIG } from '../config';
 import '../App.css';
+import { VideoErrorProvider, useVideoError } from '../utils/errorHandlers';
 
 function GameScreen() {
+    return (
+        <VideoErrorProvider>
+            <GameScreenContent />
+        </VideoErrorProvider>
+    );
+}
+
+function GameScreenContent() {
     const location = useLocation();
     const queryParams = new URLSearchParams(location.search);
     const category = queryParams.get('category') || 'polish';
@@ -21,10 +30,12 @@ function GameScreen() {
     const [isPopupVisible, setIsPopupVisible] = useState(false);
     const [isPaused, setIsPaused] = useState(false);
     const playerRef = useRef(null);
+    const { setVideoError, handlePlayerError } = useVideoError();
+    const [skipped, setSkipped] = useState(false);
 
     useEffect(() => {
         let playlistFile;
-        switch(category) {
+        switch (category) {
             case 'polish':
                 playlistFile = 'top_teledyski';
                 break;
@@ -44,9 +55,10 @@ function GameScreen() {
             .then((res) => res.json())
             .then((data) => {
                 setVideoList(data);
+                console.log("Playlist loaded:", data);
                 loadNewVideo(data);
             })
-            .catch((err) => console.error(err));
+            .catch((err) => console.error("Error loading playlist:", err));
     }, [category]);
 
     useEffect(() => {
@@ -56,41 +68,35 @@ function GameScreen() {
             return;
         }
 
-        // Only decrement timer if video is not paused
         if (!isPaused) {
             const interval = setInterval(() => {
-                setTimeLeft(prev => prev - 1);
+                setTimeLeft((prev) => prev - 1);
             }, 1000);
             return () => clearInterval(interval);
         }
     }, [timeLeft, isPaused]);
 
-    // YouTube player event handlers
-    const onPlayerReady = (event) => {
-        playerRef.current = event.target;
-    };
+    useEffect(() => {
+        if (isPopupVisible) {
+            playerRef.current?.pauseVideo();
+        }
+    }, [isPopupVisible]);
 
-    const onPlayerStateChange = (event) => {
-        // YouTube states: -1 (unstarted), 0 (ended), 1 (playing), 2 (paused), 3 (buffering), 5 (cued)
-        setIsPaused(event.data === 2); // 2 means paused
-    };
-
-    const youtubeOpts = {
-        height: '390',
-        width: '640',
-        playerVars: {
-            autoplay: 1,
-            controls: 1,
-            modestbranding: 1,
-        },
+    const onPlayerError = (event) => {
+        handlePlayerError(event);
     };
 
     const loadNewVideo = (list) => {
-        if (!list || list.length === 0) return;
+        setVideoError(false);
+        if (!list || list.length === 0) {
+            console.warn("Video list is empty or null");
+            return;
+        }
         const video = list[Math.floor(Math.random() * list.length)];
         setCurrentVideo(video);
         setTimeLeft(CONFIG.timerDuration);
         setIsPaused(false);
+        console.log("Loading new video:", video);
     };
 
     const handleSubmit = (guess) => {
@@ -106,22 +112,25 @@ function GameScreen() {
         } else if (Math.abs(guessedYear - actualYear) <= 2) {
             points = 0.5;
             setMessage(`Alright, close guess. Year is ${actualYear}, but you get half a point.`);
-            setHearts(prev => Math.max(prev - 0.5, 0));
+            setHearts((prev) => Math.max(prev - 0.5, 0));
         } else {
-            setMessage(`uh oh, not right. The answer is ${actualYear}.`);
-            setHearts(prev => Math.max(prev - 1, 0));
+            setMessage(`uh oh, not right. The answer 
+            is ${actualYear}.`);
+            setHearts((prev) => Math.max(prev - 1, 0));
         }
 
-        setGuesses(prev => [...prev, { guess: guessedYear, points }]);
+        setGuesses((prev) => [...prev, { guess: guessedYear, points }]);
         setIsPopupVisible(true);
     };
 
     const handleSkip = () => {
         if (hearts <= 0) return;
-        setGuesses(prev => [...prev, { guess: 'Skipped', points: -1 }]);
-        setHearts(prev => Math.max(prev - 1, 0));
+        playerRef.current?.pauseVideo();
+        setGuesses((prev) => [...prev, { guess: 'Skipped', points: -1 }]);
+        setHearts((prev) => Math.max(prev - 1, 0));
         setMessage("Omg!");
         setIsPopupVisible(true);
+        setSkipped(true);
     };
 
     const handleReset = () => {
@@ -136,7 +145,10 @@ function GameScreen() {
     const handleClosePopup = () => {
         setIsPopupVisible(false);
         setMessage('');
-        if (hearts > 0 && timeLeft > 0) {
+        if (skipped) {
+            setSkipped(false);
+            loadNewVideo(videoList);
+        } else if (hearts > 0 && timeLeft > 0) {
             loadNewVideo(videoList);
         }
     };
@@ -145,7 +157,10 @@ function GameScreen() {
         setIsPopupVisible(false);
         setMessage('');
         if (hearts > 0 && timeLeft > 0) {
+            console.log("handleNextRound called with videoList:", videoList);
             loadNewVideo(videoList);
+        } else {
+            console.log("handleNextRound not called because hearts or timeLeft is zero");
         }
     };
 
@@ -161,6 +176,7 @@ function GameScreen() {
         }
     }, [hearts, isPopupVisible]);
 
+
     return (
         <>
             {/* input form */}
@@ -173,13 +189,15 @@ function GameScreen() {
 
                 {/* YouTube player */}
                 <div id="player">
-                    {currentVideo && (
-                        <YouTube
-                            videoId={currentVideo.youtube_id}
-                            opts={youtubeOpts}
-                            onReady={onPlayerReady}
-                            onStateChange={onPlayerStateChange}
+                    {currentVideo ? (
+                        <VideoPlayer
+                            video={currentVideo}
+                            onStateChange={setIsPaused}
+                            onError={onPlayerError}
+                            ref={playerRef}
                         />
+                    ) : (
+                        <div>Video Unavailable</div>
                     )}
                 </div>
 
@@ -201,8 +219,10 @@ function GameScreen() {
                     onNextRound={handleNextRound}
                 />
             )}
+
         </>
     );
+
 }
 
 export default GameScreen;
