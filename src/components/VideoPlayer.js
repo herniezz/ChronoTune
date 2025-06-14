@@ -27,8 +27,8 @@ const VideoPlayer = forwardRef(({ video, onStateChange, onError }, ref) => {
     }));
 
     const youtubeOpts = {
-        height: '380',
-        width: '640',
+        height: '480',
+        width: '854',
         playerVars: {
             autoplay: 1,
             controls: 0,
@@ -51,6 +51,7 @@ const VideoPlayer = forwardRef(({ video, onStateChange, onError }, ref) => {
 
     return (
         <YouTube
+            key={video?.id}
             videoId={video?.id}
             opts={youtubeOpts}
             onReady={handleReady}

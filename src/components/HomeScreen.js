@@ -1,9 +1,7 @@
 // src/components/HomeScreen.js
 import React from 'react';
-import { Link } from 'react-router-dom';
-import '../App.css';
 
-function HomeScreen() {
+const HomeScreen = ({ onStartGame, onShowHighscores }) => {
     return (
         <div className="home-container">
             <h1 className="title">Chronotune</h1>
@@ -12,15 +10,15 @@ function HomeScreen() {
                 years of iconic music videos.
             </p>
             <div className="button-group">
-                <Link to="/music-choose" className="home-button">
+                <button className="home-button" onClick={onStartGame}>
                     Start game
-                </Link>
-                <Link to="/highscores" className="home-button">
+                </button>
+                <button className="home-button" onClick={onShowHighscores}>
                     Highscores
-                </Link>
+                </button>
             </div>
         </div>
     );
-}
+};
 
 export default HomeScreen;

@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
-import '../App.css';
-import { useNavigate } from 'react-router-dom';
 
-function MusicChooseScreen() {
+const MusicChooseScreen = ({ onCategorySelect, onBack }) => {
     const [capyMessage, setCapyMessage] = useState("Choose a category to get started!");
-    const navigate = useNavigate();
+    const [hoverMessage, setHoverMessage] = useState("");
+    const [selectedCategory, setSelectedCategory] = useState("");
 
     const handlePolishHover = () => {
         setCapyMessage("Timeless hits straight from Poland. Iconic tracks everyone remembers, cuz polska gurom.");
@@ -19,56 +18,80 @@ function MusicChooseScreen() {
     };
 
     const handleHiphopHover = () => {
-        setCapyMessage("Iconic beats and bars from hip-hop’s golden ages. Flow into the rhythm!");
+        setCapyMessage("Iconic beats and bars from hip-hop's golden ages. Flow into the rhythm!");
     };
 
     const handlePresidentHover = () => {
         setCapyMessage("I am not sure if you want to hear this, but anyway good luck lmao.");
     };
 
+    const handleMetalHover = () => {
+        setCapyMessage("Heavy riffs, thunderous drums, and epic solos. Time to headbang! YEYEEAH");
+    };
+
+    const handleNumetalHover = () => {
+        setCapyMessage("Keep rolling rolling rolling YEAH... of course if you can");
+    };
+
     const handleMouseLeave = () => {
         setCapyMessage("Choose a category to get started!");
     };
 
+    const handleHover = (message) => {
+        setHoverMessage(message);
+    };
+
     const handleCategorySelect = (category) => {
-        navigate(`/game?category=${category}`);
+        setSelectedCategory(category);
     };
 
     return (
         <div className="music-choose-container">
             <h1 className="music-choose-title">Choose your tune</h1>
-
+            
             <div className="music-choose-buttons">
                 <button
                     className="music-option polish-option"
                     onMouseEnter={handlePolishHover}
                     onMouseLeave={handleMouseLeave}
-                    onClick={() => handleCategorySelect('polish')}
+                    onClick={() => onCategorySelect('polish')}
                 >Polish classics</button>
                 <button
                     className="music-option dadrock-option"
                     onMouseEnter={handleDadrockHover}
                     onMouseLeave={handleMouseLeave}
-                    onClick={() => handleCategorySelect('dadrock')}
-                >dadrock</button>
+                    onClick={() => onCategorySelect('dadrock')}
+                >Dad Rock</button>
                 <button
                     className="music-option sassy-option"
                     onMouseEnter={handleSassyHover}
                     onMouseLeave={handleMouseLeave}
-                    onClick={() => handleCategorySelect('sassy')}
-                >Sassy gurls</button>
+                    onClick={() => onCategorySelect('sassy')}
+                >Sassy</button>
                 <button
                     className="music-option hiphop-option"
                     onMouseEnter={handleHiphopHover}
                     onMouseLeave={handleMouseLeave}
-                    onClick={() => handleCategorySelect('hiphop')}
-                >Hip-hop tunes</button>
+                    onClick={() => onCategorySelect('hiphop')}
+                >Hip Hop</button>
                 <button
                     className="music-option president-option"
                     onMouseEnter={handlePresidentHover}
                     onMouseLeave={handleMouseLeave}
-                    onClick={() => handleCategorySelect('president')}
+                    onClick={() => onCategorySelect('president')}
                 >presidential election</button>
+                <button
+                    className="music-option metal-option"
+                    onMouseEnter={handleMetalHover}
+                    onMouseLeave={handleMouseLeave}
+                    onClick={() => onCategorySelect('metal')}
+                >Metal</button>
+                <button
+                    className="music-option numetal-option"
+                    onMouseEnter={handleNumetalHover}
+                    onMouseLeave={handleMouseLeave}
+                    onClick={() => onCategorySelect('numetal')}
+                >Nu Metal</button>
             </div>
 
             <div className="bottom-section">
@@ -77,11 +100,16 @@ function MusicChooseScreen() {
                         {capyMessage}
                     </p>
                 </div>
-                <img className="capybara-icon" src="capy2.png" alt="capybara icon" />
+                <img className="capybara-icon" src={`${process.env.PUBLIC_URL || ''}/capy2.png`} alt="capybara icon" />
+            </div>
+
+            <div style={{ textAlign: 'center', marginTop: '2rem' }}>
+                <button className="home-button" onClick={onBack}>
+                    ← Back to Home
+                </button>
             </div>
         </div>
     );
-}
-
+};
 
 export default MusicChooseScreen;

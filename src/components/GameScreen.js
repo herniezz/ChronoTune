@@ -1,26 +1,24 @@
 // src/components/GameScreen.js
 import React, { useState, useEffect, useRef } from 'react';
-import { useLocation } from 'react-router-dom';
 import VideoPlayer from './VideoPlayer';
 import GameForm from './GameForm';
 import PopUpCard from './PopUpCard';
 import Hearts from './Hearts';
+import GameOverPopup from './GameOverPopup';
+import { VideoErrorProvider, useVideoError } from '../utils/errorHandlers';
+import { addHighscore } from '../utils/highscores';
 import { CONFIG } from '../config';
 import '../App.css';
-import { VideoErrorProvider, useVideoError } from '../utils/errorHandlers';
 
-function GameScreen() {
+function GameScreen({ category, onBack }) {
     return (
         <VideoErrorProvider>
-            <GameScreenContent />
+            <GameScreenContent category={category} onBack={onBack} />
         </VideoErrorProvider>
     );
 }
 
-function GameScreenContent() {
-    const location = useLocation();
-    const queryParams = new URLSearchParams(location.search);
-    const category = queryParams.get('category') || 'polish';
+function GameScreenContent({ category, onBack }) {
     const [videoList, setVideoList] = useState([]);
     const [currentVideo, setCurrentVideo] = useState(null);
     const [guesses, setGuesses] = useState([]);
@@ -28,10 +26,23 @@ function GameScreenContent() {
     const [hearts, setHearts] = useState(5);
     const [message, setMessage] = useState('');
     const [isPopupVisible, setIsPopupVisible] = useState(false);
+    const [isGameOver, setIsGameOver] = useState(false);
     const [isPaused, setIsPaused] = useState(false);
     const playerRef = useRef(null);
     const { setVideoError, handlePlayerError } = useVideoError();
     const [skipped, setSkipped] = useState(false);
+
+    const loadNewVideo = (list) => {
+        setVideoError(false);
+        if (!list || list.length === 0) {
+            console.warn("Video list is empty or null");
+            return;
+        }
+        const video = list[Math.floor(Math.random() * list.length)];
+        setCurrentVideo(video);
+        setTimeLeft(CONFIG.timerDuration);
+        setIsPaused(false);
+    };
 
     useEffect(() => {
         let playlistFile;
@@ -43,15 +54,26 @@ function GameScreenContent() {
                 playlistFile = 'elections';
                 break;
             case 'dadrock':
+                playlistFile = 'dadrock';
+                break;
             case 'sassy':
+                playlistFile = 'sassy';
+                break;
             case 'hiphop':
-                playlistFile = category;
+                playlistFile = 'hiphop';
+                break;
+            case 'metal':
+                playlistFile = 'metal';
+                break;
+            case 'numetal':
+                playlistFile = 'numetal';
                 break;
             default:
                 playlistFile = 'top_teledyski';
         }
 
-        fetch(`./playlist/${playlistFile}.json`)
+        const basePath = process.env.PUBLIC_URL || '';
+        fetch(`${basePath}/playlist/${playlistFile}.json`)
             .then((res) => res.json())
             .then((data) => {
                 setVideoList(data);
@@ -82,21 +104,14 @@ function GameScreenContent() {
         }
     }, [isPopupVisible]);
 
+    useEffect(() => {
+        if (hearts <= 0 && !isPopupVisible && !isGameOver) {
+            setIsGameOver(true);
+        }
+    }, [hearts, isPopupVisible, isGameOver]);
+
     const onPlayerError = (event) => {
         handlePlayerError(event);
-    };
-
-    const loadNewVideo = (list) => {
-        setVideoError(false);
-        if (!list || list.length === 0) {
-            console.warn("Video list is empty or null");
-            return;
-        }
-        const video = list[Math.floor(Math.random() * list.length)];
-        setCurrentVideo(video);
-        setTimeLeft(CONFIG.timerDuration);
-        setIsPaused(false);
-        console.log("Loading new video:", video);
     };
 
     const handleSubmit = (guess) => {
@@ -104,18 +119,18 @@ function GameScreenContent() {
         const guessedYear = parseInt(guess, 10);
 
         const actualYear = currentVideo.year;
+        const songTitle = currentVideo.title || "Unknown Song";
         let points = 0;
 
         if (guessedYear === actualYear) {
             points = 1;
-            setMessage("Nice, you did it!");
+            setMessage(`Nice, you did it! "${songTitle}" was released in ${actualYear}.`);
         } else if (Math.abs(guessedYear - actualYear) <= 2) {
             points = 0.5;
-            setMessage(`Alright, close guess. Year is ${actualYear}, but you get half a point.`);
+            setMessage(`Alright, close guess. "${songTitle}" was released in ${actualYear}, but you get half a point.`);
             setHearts((prev) => Math.max(prev - 0.5, 0));
         } else {
-            setMessage(`uh oh, not right. The answer 
-            is ${actualYear}.`);
+            setMessage(`uh oh, not right. "${songTitle}" was released in ${actualYear}.`);
             setHearts((prev) => Math.max(prev - 1, 0));
         }
 
@@ -128,7 +143,7 @@ function GameScreenContent() {
         playerRef.current?.pauseVideo();
         setGuesses((prev) => [...prev, { guess: 'Skipped', points: -1 }]);
         setHearts((prev) => Math.max(prev - 1, 0));
-        setMessage("Omg!");
+        setMessage("Omg! You didin't really need to skip that...You lose a point, my dude");
         setIsPopupVisible(true);
         setSkipped(true);
     };
@@ -139,29 +154,42 @@ function GameScreenContent() {
         setMessage('');
         setTimeLeft(CONFIG.timerDuration);
         setIsPopupVisible(false);
-        loadNewVideo(videoList);
+        setIsGameOver(false);
+        setSkipped(false);
+        if (videoList && videoList.length > 0) {
+            loadNewVideo(videoList);
+        }
     };
 
     const handleClosePopup = () => {
         setIsPopupVisible(false);
         setMessage('');
-        if (skipped) {
-            setSkipped(false);
-            loadNewVideo(videoList);
-        } else if (hearts > 0 && timeLeft > 0) {
+        if (videoList && videoList.length > 0) {
             loadNewVideo(videoList);
         }
+        setSkipped(false);
     };
 
     const handleNextRound = () => {
         setIsPopupVisible(false);
         setMessage('');
-        if (hearts > 0 && timeLeft > 0) {
-            console.log("handleNextRound called with videoList:", videoList);
+        if (videoList && videoList.length > 0) {
             loadNewVideo(videoList);
-        } else {
-            console.log("handleNextRound not called because hearts or timeLeft is zero");
         }
+        setSkipped(false);
+    };
+
+    const handleSubmitScore = (nickname) => {
+        const totalPoints = guesses.reduce(
+            (acc, curr) => (curr.points > 0 ? acc + curr.points : acc),
+            0
+        );
+        
+        addHighscore(nickname, totalPoints, category);
+    };
+
+    const handleGameRestart = () => {
+        handleReset();
     };
 
     const totalPoints = guesses.reduce(
@@ -169,19 +197,22 @@ function GameScreenContent() {
         0
     );
 
-    useEffect(() => {
-        if (hearts <= 0 && !isPopupVisible) {
-            setMessage("kliknij se zeby zaczac od nowa");
-            setIsPopupVisible(true);
-        }
-    }, [hearts, isPopupVisible]);
-
+    const getCategoryDisplayName = (cat) => {
+        const categoryNames = {
+            'polish': 'Polish Hits',
+            'dadrock': 'Dad Rock',
+            'president': 'Presidential',
+            'sassy': 'Sassy',
+            'hiphop': 'Hip Hop'
+        };
+        return categoryNames[cat] || cat;
+    };
 
     return (
         <>
             {/* input form */}
             <div className="input-container">
-                <GameForm onSubmit={handleSubmit} />
+                <GameForm key={currentVideo?.id} onSubmit={handleSubmit} />
             </div>
             <div className="player-area-container">
                 {/* Left-side Skip button */}
@@ -212,7 +243,14 @@ function GameScreenContent() {
                 <Hearts count={hearts} />
             </div>
 
-            {isPopupVisible && (
+            {/* Back to menu button */}
+            <div style={{ textAlign: 'center', marginTop: '2rem' }}>
+                <button className="home-button" onClick={onBack}>
+                    ← Back to Menu
+                </button>
+            </div>
+
+            {isPopupVisible && !isGameOver && (
                 <PopUpCard
                     message={message}
                     onClose={handleClosePopup}
@@ -220,9 +258,16 @@ function GameScreenContent() {
                 />
             )}
 
+            {isGameOver && (
+                <GameOverPopup
+                    points={totalPoints}
+                    category={getCategoryDisplayName(category)}
+                    onSubmitScore={handleSubmitScore}
+                    onRestart={handleGameRestart}
+                />
+            )}
         </>
     );
-
 }
 
 export default GameScreen;

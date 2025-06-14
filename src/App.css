@@ -1,7 +1,7 @@
 /* app.css */
 #player {
-  width: 640px;
-  height: 380px;
+  width: 854px;
+  height: 480px;
   margin: 2rem 0;
   border: 4px solid var(--azure-web);
   box-shadow: 8px 8px 0 var(--azure-web);
@@ -96,9 +96,9 @@
 
 .player-area-container {
   display: flex;
-  align-items: center;    /* Vertically center the children */
-  justify-content: center; /* Center the entire group horizontally */
-  gap: 20px;              /* Space between buttons and video */
+  align-items: center;
+  justify-content: center;
+  gap: 48px; /* Increased gap for more space between video and buttons */
   margin: 2rem 0;
 }
 
@@ -266,6 +266,16 @@
   color: #FFFFFF;
 }
 
+.metal-option:hover {
+  background-color: #2c2c2c;
+  color: #FFFFFF;
+}
+
+.numetal-option:hover {
+  background-color: #1a1a1a;
+  color: #FF6B6B;
+}
+
 /* Bottom area containing the message & capybara */
 
 .bottom-section {
@@ -341,4 +351,231 @@
 .input-error {
   border-color: #ff3333;
   outline: 2px solid #ff3333;
+}
+
+/* Highscores Screen Styles */
+.highscores-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  padding: 2rem;
+  color: var(--azure-web);
+}
+
+.highscores-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.highscores-title {
+  font-family: 'Press Start 2P', sans-serif;
+  font-size: 3rem;
+  color: var(--azure-web);
+  text-shadow: 4px 4px 0 var(--super-dark);
+  margin: 0;
+}
+
+.back-button {
+  font-family: 'Press Start 2P', sans-serif;
+  font-size: 12px;
+  padding: 12px 20px;
+  background: var(--azure-web);
+  color: var(--super-dark);
+  border: 2px solid var(--super-dark);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 4px 4px 0 var(--super-dark);
+}
+
+.back-button:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0 var(--super-dark);
+}
+
+.category-filter {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  font-family: 'Press Start 2P', sans-serif;
+  font-size: 12px;
+}
+
+.category-select {
+  font-family: 'Press Start 2P', sans-serif;
+  font-size: 10px;
+  padding: 8px 12px;
+  background: var(--azure-web);
+  color: var(--super-dark);
+  border: 2px solid var(--super-dark);
+  cursor: pointer;
+}
+
+.scores-list {
+  flex: 1;
+  margin-bottom: 2rem;
+}
+
+.no-scores {
+  text-align: center;
+  font-family: 'Press Start 2P', sans-serif;
+  font-size: 14px;
+  line-height: 2;
+  margin-top: 4rem;
+}
+
+.scores-table {
+  background: rgba(73, 115, 255, 0.1);
+  border: 2px solid var(--azure-web);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.table-header {
+  display: grid;
+  grid-template-columns: 60px 1fr 80px 120px 100px;
+  background: var(--azure-web);
+  color: var(--super-dark);
+  font-family: 'Press Start 2P', sans-serif;
+  font-size: 10px;
+  padding: 12px;
+  font-weight: bold;
+}
+
+.score-row {
+  display: grid;
+  grid-template-columns: 60px 1fr 80px 120px 100px;
+  padding: 12px;
+  border-bottom: 1px solid rgba(73, 115, 255, 0.3);
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  transition: background-color 0.3s ease;
+}
+
+.score-row:hover {
+  background: rgba(73, 115, 255, 0.2);
+}
+
+.score-row:last-child {
+  border-bottom: none;
+}
+
+.rank-col {
+  font-weight: bold;
+}
+
+.name-col {
+  font-weight: bold;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.score-col {
+  text-align: center;
+  font-weight: bold;
+}
+
+.category-col {
+  text-align: center;
+  font-size: 10px;
+}
+
+.date-col {
+  text-align: center;
+  font-size: 10px;
+}
+
+.actions {
+  display: flex;
+  justify-content: center;
+}
+
+.clear-button {
+  font-family: 'Press Start 2P', sans-serif;
+  font-size: 10px;
+  padding: 12px 20px;
+  background: #d32f2f;
+  color: white;
+  border: 2px solid var(--super-dark);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 4px 4px 0 var(--super-dark);
+}
+
+.clear-button:hover:not(:disabled) {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0 var(--super-dark);
+}
+
+.clear-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.confirm-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.confirm-dialog {
+  background: var(--azure-web);
+  color: var(--super-dark);
+  padding: 2rem;
+  border: 3px solid var(--super-dark);
+  box-shadow: 8px 8px 0 var(--super-dark);
+  font-family: 'Press Start 2P', sans-serif;
+  text-align: center;
+  max-width: 400px;
+}
+
+.confirm-dialog h3 {
+  margin: 0 0 1rem 0;
+  font-size: 14px;
+}
+
+.confirm-dialog p {
+  margin: 0 0 2rem 0;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.confirm-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.confirm-yes, .confirm-no {
+  font-family: 'Press Start 2P', sans-serif;
+  font-size: 10px;
+  padding: 10px 16px;
+  border: 2px solid var(--super-dark);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.confirm-yes {
+  background: #d32f2f;
+  color: white;
+}
+
+.confirm-no {
+  background: var(--super-dark);
+  color: var(--azure-web);
+}
+
+.confirm-yes:hover, .confirm-no:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 4px 4px 0 var(--super-dark);
 }
