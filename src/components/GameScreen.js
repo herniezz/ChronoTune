@@ -10,6 +10,16 @@ import { addHighscore } from '../utils/highscores';
 import { CONFIG } from '../config';
 import '../App.css';
 
+const FACTS_PATH = `${process.env.PUBLIC_URL || ''}/funfactsforloading/music_cognition_fun_facts.json`;
+const GIFS = [
+    `${process.env.PUBLIC_URL || ''}/funfactsforloading/capy1.gif`,
+    `${process.env.PUBLIC_URL || ''}/funfactsforloading/dog3.gif`,
+    `${process.env.PUBLIC_URL || ''}/funfactsforloading/dog4.gif`,
+    `${process.env.PUBLIC_URL || ''}/funfactsforloading/dog5.gif`,
+    `${process.env.PUBLIC_URL || ''}/funfactsforloading/cat2.gif`,
+    `${process.env.PUBLIC_URL || ''}/funfactsforloading/cat6.gif`,
+];
+
 function GameScreen({ category, onBack }) {
     return (
         <VideoErrorProvider>
@@ -22,7 +32,6 @@ function GameScreenContent({ category, onBack }) {
     const [videoList, setVideoList] = useState([]);
     const [currentVideo, setCurrentVideo] = useState(null);
     const [guesses, setGuesses] = useState([]);
-    const [timeLeft, setTimeLeft] = useState(CONFIG.timerDuration);
     const [hearts, setHearts] = useState(5);
     const [message, setMessage] = useState('');
     const [isPopupVisible, setIsPopupVisible] = useState(false);
@@ -30,7 +39,81 @@ function GameScreenContent({ category, onBack }) {
     const [isPaused, setIsPaused] = useState(false);
     const playerRef = useRef(null);
     const { setVideoError, handlePlayerError } = useVideoError();
-    const [skipped, setSkipped] = useState(false);
+    const [startTime, setStartTime] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [facts, setFacts] = useState([]);
+    const [randomFact, setRandomFact] = useState(null);
+    const [isPlayerReady, setIsPlayerReady] = useState(false);
+    const [randomGif, setRandomGif] = useState(GIFS[0]);
+    const FALLBACK_GIF = 'https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif';
+    const [gifError, setGifError] = useState(false);
+
+    useEffect(() => {
+        console.log('Loading facts from:', FACTS_PATH);
+        fetch(FACTS_PATH)
+            .then(res => {
+                console.log('Facts response status:', res.status);
+                return res.json();
+            })
+            .then(data => {
+                console.log('Facts loaded:', data.length, 'facts');
+                console.log('Sample fact:', data[0]);
+                setFacts(data);
+                if (data.length > 0) {
+                    const randomIndex = Math.floor(Math.random() * data.length);
+                    console.log('Selected random fact index:', randomIndex);
+                    console.log('Selected random fact:', data[randomIndex]);
+                    setRandomFact(data[randomIndex]);
+                }
+            })
+            .catch(err => {
+                console.error('Error loading facts:', err);
+                setFacts([]);
+            });
+    }, []);
+
+    useEffect(() => {
+        setIsLoading(true);
+        setIsPlayerReady(false);
+        setGifError(false);
+        if (facts.length > 0) {
+            const randomIndex = Math.floor(Math.random() * facts.length);
+            const newFact = facts[randomIndex];
+            console.log('Setting new random fact index:', randomIndex);
+            console.log('Setting new random fact:', newFact);
+            console.log('Citation:', newFact.citation);
+            console.log('Link:', newFact.link);
+            setRandomFact(newFact);
+        }
+        const newGif = GIFS[Math.floor(Math.random() * GIFS.length)];
+        console.log('Setting new random gif:', newGif);
+        setRandomGif(newGif);
+        const timer = setTimeout(() => {
+            setIsLoading(false);
+            setTimeout(() => {
+                try {
+                    if (playerRef.current && typeof playerRef.current.unMute === 'function') {
+                        playerRef.current.unMute();
+                    }
+                } catch (e) {
+                    console.error('Unmute error:', e);
+                }
+            }, 100);
+        }, 7000);
+        return () => clearTimeout(timer);
+    }, [currentVideo, facts]);
+
+    useEffect(() => {
+        if (isLoading && isPlayerReady) {
+            try {
+                if (playerRef.current && typeof playerRef.current.mute === 'function') {
+                    playerRef.current.mute();
+                }
+            } catch (e) {
+                console.error('Mute error:', e);
+            }
+        }
+    }, [isLoading, isPlayerReady]);
 
     const loadNewVideo = (list) => {
         setVideoError(false);
@@ -40,8 +123,8 @@ function GameScreenContent({ category, onBack }) {
         }
         const video = list[Math.floor(Math.random() * list.length)];
         setCurrentVideo(video);
-        setTimeLeft(CONFIG.timerDuration);
         setIsPaused(false);
+        setStartTime(null);
     };
 
     useEffect(() => {
@@ -84,21 +167,6 @@ function GameScreenContent({ category, onBack }) {
     }, [category]);
 
     useEffect(() => {
-        if (timeLeft <= 0) {
-            setMessage("Time up! You lose a heart.");
-            setIsPopupVisible(true);
-            return;
-        }
-
-        if (!isPaused) {
-            const interval = setInterval(() => {
-                setTimeLeft((prev) => prev - 1);
-            }, 1000);
-            return () => clearInterval(interval);
-        }
-    }, [timeLeft, isPaused]);
-
-    useEffect(() => {
         if (isPopupVisible) {
             playerRef.current?.pauseVideo();
         }
@@ -114,6 +182,28 @@ function GameScreenContent({ category, onBack }) {
         handlePlayerError(event);
     };
 
+    const handleVideoEnd = () => {
+        if (playerRef.current && startTime !== null) {
+            playerRef.current.seekTo(startTime);
+            playerRef.current.playVideo();
+        }
+    };
+
+    const handleVideoReady = () => {
+        setIsPlayerReady(true);
+        if (isLoading) {
+            try {
+                if (playerRef.current && typeof playerRef.current.mute === 'function') playerRef.current.mute();
+            } catch (e) {
+                console.error('Mute error (onReady):', e);
+            }
+        }
+        if (playerRef.current) {
+            const currentTime = playerRef.current.getCurrentTime();
+            setStartTime(currentTime);
+        }
+    };
+
     const handleSubmit = (guess) => {
         if (!currentVideo || hearts <= 0) return;
         const guessedYear = parseInt(guess, 10);
@@ -126,11 +216,13 @@ function GameScreenContent({ category, onBack }) {
             points = 1;
             setMessage(`Nice, you did it! "${songTitle}" was released in ${actualYear}.`);
         } else if (Math.abs(guessedYear - actualYear) <= 2) {
+            points = 1;
+            setMessage(`Great guess! "${songTitle}" was released in ${actualYear}. You get a full point for being within 2 years!`);
+        } else if (Math.abs(guessedYear - actualYear) <= 3) {
             points = 0.5;
-            setMessage(`Alright, close guess. "${songTitle}" was released in ${actualYear}, but you get half a point.`);
-            setHearts((prev) => Math.max(prev - 0.5, 0));
+            setMessage(`Close enough! "${songTitle}" was released in ${actualYear}. You get half a point for being within 3 years.`);
         } else {
-            setMessage(`uh oh, not right. "${songTitle}" was released in ${actualYear}.`);
+            setMessage(`Not quite right. "${songTitle}" was released in ${actualYear}.`);
             setHearts((prev) => Math.max(prev - 1, 0));
         }
 
@@ -138,24 +230,12 @@ function GameScreenContent({ category, onBack }) {
         setIsPopupVisible(true);
     };
 
-    const handleSkip = () => {
-        if (hearts <= 0) return;
-        playerRef.current?.pauseVideo();
-        setGuesses((prev) => [...prev, { guess: 'Skipped', points: -1 }]);
-        setHearts((prev) => Math.max(prev - 1, 0));
-        setMessage("Omg! You didin't really need to skip that...You lose a point, my dude");
-        setIsPopupVisible(true);
-        setSkipped(true);
-    };
-
     const handleReset = () => {
         setGuesses([]);
         setHearts(5);
         setMessage('');
-        setTimeLeft(CONFIG.timerDuration);
         setIsPopupVisible(false);
         setIsGameOver(false);
-        setSkipped(false);
         if (videoList && videoList.length > 0) {
             loadNewVideo(videoList);
         }
@@ -167,7 +247,6 @@ function GameScreenContent({ category, onBack }) {
         if (videoList && videoList.length > 0) {
             loadNewVideo(videoList);
         }
-        setSkipped(false);
     };
 
     const handleNextRound = () => {
@@ -176,7 +255,6 @@ function GameScreenContent({ category, onBack }) {
         if (videoList && videoList.length > 0) {
             loadNewVideo(videoList);
         }
-        setSkipped(false);
     };
 
     const handleSubmitScore = (nickname) => {
@@ -210,14 +288,151 @@ function GameScreenContent({ category, onBack }) {
 
     return (
         <>
-            {/* input form */}
+            {/* Global loading overlay - retro two-column style */}
+            {isLoading && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    width: '100vw',
+                    height: '100vh',
+                    backgroundColor: '#000',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 10000,
+                    fontFamily: "'Press Start 2P', monospace",
+                    opacity: isLoading ? 1 : 0,
+                    transition: 'opacity 0.5s ease-in-out'
+                }}>
+                    {randomFact ? (
+                        <div style={{ 
+                            display: 'flex', 
+                            flexDirection: 'row', 
+                            alignItems: 'center', 
+                            gap: 48,
+                            opacity: isLoading ? 1 : 0,
+                            transform: isLoading ? 'scale(1)' : 'scale(0.95)',
+                            transition: 'all 0.5s ease-in-out'
+                        }}>
+                            {/* Left: gif */}
+                            <img
+                                src={gifError ? FALLBACK_GIF : randomGif}
+                                alt="fun gif"
+                                style={{ 
+                                    width: 600, 
+                                    height: 450, 
+                                    objectFit: 'cover', 
+                                    borderRadius: 8, 
+                                    background: '#222', 
+                                    boxShadow: '0 0 0 4px #fff',
+                                    imageRendering: 'pixelated'
+                                }}
+                                onError={() => setGifError(true)}
+                            />
+                            {/* Right: fact */}
+                            <div style={{ 
+                                display: 'flex', 
+                                flexDirection: 'column', 
+                                alignItems: 'flex-start', 
+                                maxWidth: 500 
+                            }}>
+                                <div style={{ 
+                                    fontSize: 40, 
+                                    color: '#fff', 
+                                    marginBottom: 24, 
+                                    lineHeight: 1.1, 
+                                    fontWeight: 'bold', 
+                                    letterSpacing: 2,
+                                    textShadow: '2px 2px 0 #000'
+                                }}>
+                                    Did you<br/>know..
+                                </div>
+                                <div style={{ 
+                                    fontSize: 22, 
+                                    color: '#fff', 
+                                    marginBottom: 24, 
+                                    fontWeight: 'bold', 
+                                    lineHeight: 1.2,
+                                    textShadow: '2px 2px 0 #000'
+                                }}>
+                                    {randomFact.title.replace('Did you know…', '').replace('Did you know...', '').replace('Did you know', '')}
+                                </div>
+                                <div style={{ 
+                                    background: '#fff', 
+                                    color: '#111', 
+                                    fontSize: 18, 
+                                    padding: '18px 24px', 
+                                    borderRadius: 4, 
+                                    marginBottom: 24, 
+                                    fontWeight: 'bold', 
+                                    boxShadow: '0 0 0 4px #fff', 
+                                    fontFamily: "'Press Start 2P', monospace",
+                                    imageRendering: 'pixelated'
+                                }}>
+                                    {randomFact.content}
+                                </div>
+                                {/* Citation under the fact content */}
+                                {randomFact.title_names && (
+                                    <span
+                                        style={{
+                                            fontStyle: 'italic',
+                                            fontSize: 18,
+                                            color: '#fff',
+                                            opacity: 0.8,
+                                            marginTop: 8,
+                                            textShadow: '2px 2px 0 #000'
+                                        }}
+                                    >
+                                        {randomFact.title_names}
+                                    </span>
+                                )}
+                                {/* Loading bar */}
+                                {isLoading && (
+                                    <div style={{
+                                        width: '100%',
+                                        height: '8px',
+                                        background: '#333',
+                                        marginTop: '16px',
+                                        borderRadius: '2px',
+                                        overflow: 'hidden',
+                                        boxShadow: 'inset 0 0 0 2px #000',
+                                        imageRendering: 'pixelated'
+                                    }}>
+                                        <div style={{
+                                            width: '100%',
+                                            height: '100%',
+                                            background: '#fff',
+                                            animation: 'loading 7s linear forwards',
+                                            transformOrigin: 'left',
+                                            boxShadow: '0 0 0 2px #000',
+                                            imageRendering: 'pixelated'
+                                        }} />
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    ) : (
+                        <div style={{
+                            color: '#fff',
+                            fontSize: 32
+                        }}>
+                            Loading fun facts...
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* input form with info section */}
             <div className="input-container">
+                <div className="info-section">
+                    <div id="score-board">Points: <span>{totalPoints}</span></div>
+                    <Hearts count={hearts} />
+                </div>
                 <GameForm key={currentVideo?.id} onSubmit={handleSubmit} />
             </div>
-            <div className="player-area-container">
-                {/* Left-side Skip button */}
-                <button className="skip-button" onClick={handleSkip}>Skip</button>
 
+            <div className="player-area-container">
                 {/* YouTube player */}
                 <div id="player">
                     {currentVideo ? (
@@ -225,22 +440,14 @@ function GameScreenContent({ category, onBack }) {
                             video={currentVideo}
                             onStateChange={setIsPaused}
                             onError={onPlayerError}
+                            onEnd={handleVideoEnd}
+                            onReady={handleVideoReady}
                             ref={playerRef}
                         />
                     ) : (
                         <div>Video Unavailable</div>
                     )}
                 </div>
-
-                {/* right-side Reset button */}
-                <button className="reset-button" onClick={handleReset}>Reset</button>
-            </div>
-
-            {/* scoring, timer and hearts */}
-            <div className="info-section">
-                <div id="score-board">Points: <span>{totalPoints}</span></div>
-                <div id="timer-display">Time left: {timeLeft}s</div>
-                <Hearts count={hearts} />
             </div>
 
             {/* Back to menu button */}
@@ -250,7 +457,7 @@ function GameScreenContent({ category, onBack }) {
                 </button>
             </div>
 
-            {isPopupVisible && !isGameOver && (
+            {isPopupVisible && (
                 <PopUpCard
                     message={message}
                     onClose={handleClosePopup}
@@ -260,10 +467,11 @@ function GameScreenContent({ category, onBack }) {
 
             {isGameOver && (
                 <GameOverPopup
-                    points={totalPoints}
-                    category={getCategoryDisplayName(category)}
+                    onClose={handleClosePopup}
                     onSubmitScore={handleSubmitScore}
                     onRestart={handleGameRestart}
+                    totalPoints={totalPoints}
+                    category={getCategoryDisplayName(category)}
                 />
             )}
         </>
@@ -271,3 +479,32 @@ function GameScreenContent({ category, onBack }) {
 }
 
 export default GameScreen;
+
+// Update the keyframes
+const loadingKeyframes = `
+@keyframes loading {
+    0% {
+        transform: scaleX(0);
+    }
+    100% {
+        transform: scaleX(1);
+    }
+}
+
+@keyframes pixelate {
+    0% {
+        filter: blur(0);
+    }
+    50% {
+        filter: blur(1px);
+    }
+    100% {
+        filter: blur(0);
+    }
+}
+`;
+
+// Add the keyframes to the document
+const style = document.createElement('style');
+style.textContent = loadingKeyframes;
+document.head.appendChild(style);
