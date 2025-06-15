@@ -1,10 +1,49 @@
 /* app.css */
 #player {
-  width: 854px;
-  height: 480px;
-  margin: 2rem 0;
+  width: 900px;
+  height: 506px;
+  margin: 1.5rem 0 0.5rem 0;
   border: 4px solid var(--azure-web);
   box-shadow: 8px 8px 0 var(--azure-web);
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+#player iframe {
+  border: none;
+  pointer-events: none;
+}
+
+/* Hide YouTube branding and controls */
+#player .ytp-chrome-top,
+#player .ytp-chrome-bottom,
+#player .ytp-watermark,
+#player .ytp-gradient-top,
+#player .ytp-gradient-bottom,
+#player .ytp-title,
+#player .ytp-title-text,
+#player .ytp-title-channel,
+#player .ytp-show-cards-title {
+  display: none !important;
+  visibility: hidden !important;
+}
+
+/* Prevent context menu on video */
+#player iframe {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
 
 #score-board {
@@ -17,16 +56,15 @@
 /* Input Styles */
 .input-container {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
   width: 45%;
-  margin: 2rem auto;
+  margin: 1.5rem auto 0.5rem auto;
+  gap: 0.5rem;
 }
 
 .form-container {
-  display: flex;
-  justify-content: center;
-  width: 100%;
-  margin: 2rem auto;
+  margin: 0.5rem auto 0 auto;
 }
 
 .form-container form {
@@ -82,7 +120,8 @@
   flex-direction: column;
   align-items: center;
   gap: 10px;
-  padding-bottom: 50px;
+  padding-bottom: 0;
+  margin-bottom: 0.5rem;
 }
 
 .button-container {
@@ -95,11 +134,7 @@
 }
 
 .player-area-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 48px; /* Increased gap for more space between video and buttons */
-  margin: 2rem 0;
+  margin: 0.5rem 0 2rem 0;
 }
 
 /* Button styles in game*/
